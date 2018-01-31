@@ -1,0 +1,11 @@
+.DS_*
+config.yml
+composer.lock
+vendor/
+tests/tmp/
+
+# User-specific stuff:
+.idea/**
+
+# mpeltonen/sbt-idea plugin
+.idea_modules/
