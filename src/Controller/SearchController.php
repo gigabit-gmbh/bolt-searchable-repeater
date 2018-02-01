@@ -1,6 +1,6 @@
 <?php
 
-namespace Bolt\Extension\Gigabit\Controller;
+namespace Bolt\Extension\Gigabit\SearchableRepeater\Controller;
 
 use Bolt\Controller\Base;
 use Bolt\Controller\ConfigurableBase;
