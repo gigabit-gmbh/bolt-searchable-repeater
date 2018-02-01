@@ -19,6 +19,15 @@ use Symfony\Component\HttpFoundation\Response;
  */
 class SearchController extends ConfigurableBase
 {
+
+    /**
+     * SearchController constructor.
+     */
+    public function __construct($app)
+    {
+        $this->app = $app;
+    }
+
     protected function getConfigurationRoutes()
     {
         return $this->app['config']->get('routing', []);
