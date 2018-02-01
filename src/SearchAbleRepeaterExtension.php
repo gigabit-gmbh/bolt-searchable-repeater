@@ -3,9 +3,11 @@
 namespace Bolt\Extension\Gigabit\SearchableRepeater;
 
 use Bolt\Extension\Gigabit\SearchableRepeater\Helpers\Storage;
+use Bolt\Extension\Gigabit\SearchableRepeater\Twig\Excerpt;
 use Bolt\Extension\SimpleExtension;
 use Bolt\Storage\EntityManager;
 use Silex\Application;
+use Twig\Markup;
 
 /**
  * ExtensionName extension class.
@@ -15,11 +17,15 @@ use Silex\Application;
 class SearchAbleRepeaterExtension extends SimpleExtension
 {
 
+    protected $app;
+
     /**
      * @param Application $app
      */
     protected function registerServices(Application $app)
     {
+        $this->app = $app;
+
         $app['helper.storage.legacy'] = $app->share(
             function ($app) {
                 return new Storage($app);
@@ -57,8 +63,43 @@ class SearchAbleRepeaterExtension extends SimpleExtension
             }
         );
 
+    }
 
 
+    /**
+     * {@inheritdoc}
+     */
+    protected function registerTwigFilters()
+    {
+        return [
+            'repEx' => 'excerptFilter',
+        ];
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    protected function registerTwigPaths()
+    {
+        return [
+            'templates/normal',
+            'templates/other' => ['namespace' => 'SearchableRepeater'],
+            'templates/special' => ['namespace' => 'Gigabit', 'position' => 'prepend'],
+        ];
+    }
+
+    /**
+     * @param int $length
+     * @param bool $includeTitle
+     * @param string|array $focus
+     *
+     * @return Markup
+     */
+    public function excerptFilter($input, $length = 200, $includeTitle = false, $focus = null)
+    {
+        $excerpt = new Excerpt($input->contenttype, $input->values, $this->app);
+
+        return $excerpt->getExcerpt($length, $includeTitle, $focus);
     }
 
 }
