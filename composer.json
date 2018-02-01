@@ -34,10 +34,6 @@
     },
     "extra": {
         "bolt-assets": "web",
-        "bolt-class": "Bolt\\Extension\\Gigabit\\SearchableRepeater\\SearchAbleRepeaterExtension",
-        "bolt-icon": "bolt-icon.png",
-        "bolt-screenshots": [
-            "screenshots/screenshot1.png"
-        ]
+        "bolt-class": "Bolt\\Extension\\Gigabit\\SearchableRepeater\\SearchAbleRepeaterExtension"
     }
 }
