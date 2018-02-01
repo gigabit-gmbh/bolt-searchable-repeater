@@ -142,10 +142,10 @@ class Storage extends BaseLegacyStorage
             $taxonomytable,
             $table,
             $taxonomytable,
-            implode(' AND ', $where),
             $fieldValueTable,
             $table,
             $fieldValueTable,
+            implode(' AND ', $where),
             $table
         );
 
@@ -164,6 +164,146 @@ class Storage extends BaseLegacyStorage
         }
 
         return $results;
+    }
+
+    /**
+     *
+     * Overwrite / duplication , because necessary searchSingleContentType is called within that function.
+     *
+     * Search through actual content.
+     *
+     * Unless the query is invalid it will always return a 'result array'. It may
+     * complain in the log but it won't abort.
+     *
+     * @param string $q Search string
+     * @param array $contenttypes Contenttype names to search for:
+     *                              - string: Specific contenttype
+     *                              - null:   Every searchable contenttype
+     * @param array $filters Additional filters for contenttypes
+     *                              - key is contenttype
+     *                              - value is filter
+     * @param integer $limit limit the number of results
+     * @param integer $offset skip this number of results
+     *
+     * @return mixed false if query is invalid, an array with results if query was executed
+     */
+    public function searchContent($q, array $contenttypes = null, array $filters = null, $limit = 9999, $offset = 0)
+    {
+        $query = $this->decodeSearchQuery($q);
+        if (!$query['valid']) {
+            return false;
+        }
+
+        $appCt = $this->helperApp['config']->get('contenttypes');
+
+        // By default we only search through searchable contenttypes
+        if (is_null($contenttypes)) {
+            $contenttypes = array_keys($appCt);
+            $contenttypes = array_filter(
+                $contenttypes,
+                function ($ct) use ($appCt) {
+                    if ((isset($appCt[$ct]['searchable']) && $appCt[$ct]['searchable'] === false) ||
+                        (isset($appCt[$ct]['viewless']) && $appCt[$ct]['viewless'] === true)
+                    ) {
+                        return false;
+                    }
+
+                    return true;
+                }
+            );
+            $contenttypes = array_map(
+                function ($ct) use ($appCt) {
+                    return $appCt[$ct]['slug'];
+                },
+                $contenttypes
+            );
+        }
+
+        // Build our search results array
+        $results = [];
+
+        // First, attempt to search for the literal string, eg. "Lorum Ipsum"
+        foreach ($contenttypes as $contenttype) {
+            $ctconfig = $this->getContentType($contenttype);
+
+            $fields = $ctconfig['fields'];
+            $filter = null;
+
+            if (is_array($filters) && isset($filters[$contenttype])) {
+                $filter = $filters[$contenttype];
+            }
+
+            $subResults = $this->searchSingleContentType($query, $contenttype, $fields, $filter, true);
+
+            $results = array_merge($results, $subResults);
+        }
+
+        // If that didn't produce results, search for "Lorum" or "Ipsum"
+        if (empty($results)) {
+            foreach ($contenttypes as $contenttype) {
+                $ctconfig = $this->getContentType($contenttype);
+
+                $fields = $ctconfig['fields'];
+                $filter = null;
+
+                if (is_array($filters) && isset($filters[$contenttype])) {
+                    $filter = $filters[$contenttype];
+                }
+
+                $subResults = $this->searchSingleContentType($query, $contenttype, $fields, $filter, false);
+
+                $results = array_merge($results, $subResults);
+            }
+        }
+
+        // Sort the results
+        usort($results, [$this, 'compareSearchWeights']);
+
+        $noOfResults = count($results);
+
+        $pageResults = [];
+        if ($offset < $noOfResults) {
+            $pageResults = array_slice($results, $offset, $limit);
+        }
+
+        return [
+            'query' => $query,
+            'no_of_results' => $noOfResults,
+            'results' => $pageResults,
+        ];
+    }
+
+    /**
+     * Overwrite, because of private in parent.
+     *
+     * @param string $q
+     *
+     * @return array
+     */
+    private function decodeSearchQuery($q)
+    {
+        $words = preg_split('|[\r\n\t ]+|', trim($q));
+
+        $words = array_map(
+            function ($word) {
+                return mb_strtolower($word);
+            },
+            $words
+        );
+        $words = array_filter(
+            $words,
+            function ($word) {
+                return strlen($word) >= 2;
+            }
+        );
+
+        return [
+            'valid' => count($words) > 0,
+            'in_q' => $q,
+            'use_q' => implode(' ', $words),
+            'sanitized_q' => strip_tags($q),
+            'words' => $words,
+        ];
     }
 
     /**
@@ -236,6 +376,34 @@ class Storage extends BaseLegacyStorage
         );
 
         return $parameter;
+    }
+
+    /**
+     * Overwrite, because of private in parent.
+     *
+     * @param \Bolt\Legacy\Content $a
+     * @param \Bolt\Legacy\Content $b
+     *
+     * @return int
+     */
+    private function compareSearchWeights(Content $a, Content $b)
+    {
+        if ($a->getSearchResultWeight() > $b->getSearchResultWeight()) {
+            return -1;
+        }
+        if ($a->getSearchResultWeight() < $b->getSearchResultWeight()) {
+            return 1;
+        }
+        if ($a['datepublish'] > $b['datepublish']) {
+            // later is more important
+            return -1;
+        }
+        if ($a['datepublish'] < $b['datepublish']) {
+            // earlier is less important
+            return 1;
+        }
+
+        return strcasecmp($a['title'], $b['title']);
     }
 
 }
