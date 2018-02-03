@@ -2,8 +2,10 @@
 
 namespace Bolt\Extension\Gigabit\SearchableRepeater\Controller;
 
+use Bolt\Collection\MutableBag;
 use Bolt\Controller\Frontend;
 use Bolt\Response\TemplateResponse;
+use Bolt\Response\TemplateView;
 use Symfony\Component\HttpFoundation\Request;
 
 /**
@@ -41,13 +43,26 @@ class SearchController extends Frontend
      * The search result page controller.
      *
      * @param Request $request The Symfony Request
-     * @param array $contenttypes The content type slug(s) you want to search for
+     * @param array $contentTypes The content type slug(s) you want to search for
      *
-     * @return TemplateResponse
+     * @return TemplateResponse|TemplateView
      */
-    public function searchWithRepeater(Request $request, array $contenttypes = null)
+    public function searchWithRepeater(Request $request, array $contentTypes = null)
     {
-        return $this->search($request, $contenttypes);
+        /** @var TemplateView $renderedTemplate */
+        $renderedTemplate = $this->search($request, $contentTypes);
+
+        if (isset($contentTypes)) {
+            $mutableBag = MutableBag::from($renderedTemplate->getContext());
+
+            $mutableBag->set("contentTypes", $contentTypes);
+
+            if ($renderedTemplate instanceof TemplateView) {
+                $renderedTemplate->setContext($mutableBag);
+            }
+        }
+
+        return $renderedTemplate;
     }
 
 }
