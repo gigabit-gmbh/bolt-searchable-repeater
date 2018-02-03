@@ -43,19 +43,19 @@ class SearchController extends Frontend
      * The search result page controller.
      *
      * @param Request $request The Symfony Request
-     * @param array $contentTypes The content type slug(s) you want to search for
+     * @param array $contenttypes The content type slug(s) you want to search for
      *
      * @return TemplateResponse|TemplateView
      */
-    public function searchWithRepeater(Request $request, array $contentTypes = null)
+    public function searchWithRepeater(Request $request, array $contenttypes = null)
     {
         /** @var TemplateView $renderedTemplate */
-        $renderedTemplate = $this->search($request, $contentTypes);
+        $renderedTemplate = $this->search($request, $contenttypes);
 
-        if (isset($contentTypes)) {
+        if (isset($contenttypes)) {
             $mutableBag = MutableBag::from($renderedTemplate->getContext());
 
-            $mutableBag->set("contentTypes", $contentTypes);
+            $mutableBag->set("contentTypes", $contenttypes);
 
             if ($renderedTemplate instanceof TemplateView) {
                 $renderedTemplate->setContext($mutableBag);
