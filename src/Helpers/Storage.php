@@ -195,7 +195,10 @@ class Storage extends BaseLegacyStorage
             );
             $contenttypes = array_map(
                 function ($ct) use ($appCt) {
-                    return $appCt[$ct]['slug'];
+                    // just use $ct to prevent bolts inconsistent usage of
+                    // content types (a slug as key for a query where the target key is the conten type key...
+                    return $ct;
+                    //return $appCt[$ct]['slug'];
                 },
                 $contenttypes
             );
