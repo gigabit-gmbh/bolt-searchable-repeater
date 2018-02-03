@@ -99,24 +99,6 @@ class Storage extends BaseLegacyStorage
             $tagsQuery = sprintf(' OR (%s AND (%s))', $tagsQueryA, $tagsQueryB);
         }
 
-        // make repeaters work
-        $taxonomytable = $this->getTablename('taxonomy');
-        $taxonomies = $this->getContentTypeTaxonomy($contenttype);
-        $tagsWhere = [];
-        $tagsQuery = '';
-
-        foreach ($taxonomies as $taxonomy) {
-            if ($taxonomy['behaves_like'] == 'tags') {
-                foreach ($query['words'] as $word) {
-                    $tagsWhere[] = sprintf(
-                        '%s.slug LIKE %s',
-                        $taxonomytable,
-                        $this->helperApp['db']->quote('%'.$word.'%')
-                    );
-                }
-            }
-        }
-
         // Build filter 'WHERE"
         // @todo make relations work as well
         $filterWhere = [];
