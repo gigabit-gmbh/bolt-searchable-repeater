@@ -89,6 +89,11 @@ class Storage extends BaseLegacyStorage
                         $taxonomytable,
                         $this->helperApp['db']->quote('%'.$word.'%')
                     );
+                    $tagsWhere[] = sprintf(
+                        '%s.name LIKE %s',
+                        $taxonomytable,
+                        $this->helperApp['db']->quote('%'.$word.'%')
+                    );
                 }
             }
         }
