@@ -1,6 +1,6 @@
 {
     "name": "gigabit/searchable-repeater",
-    "description": "Adds the possiblity to search in the content type repeater ",
+    "description": "Adds the possibility to search in the content type repeater ",
     "type": "bolt-extension",
     "keywords": [
         "repeater",
