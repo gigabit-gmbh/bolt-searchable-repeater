@@ -5,6 +5,7 @@ namespace Bolt\Extension\Gigabit\SearchableRepeater;
 use Bolt\Extension\Gigabit\SearchableRepeater\Helpers\Storage;
 use Bolt\Extension\Gigabit\SearchableRepeater\Twig\Excerpt;
 use Bolt\Extension\SimpleExtension;
+use Bolt\Legacy\Content;
 use Bolt\Storage\EntityManager;
 use Silex\Application;
 use Twig\Markup;
@@ -97,7 +98,7 @@ class SearchAbleRepeaterExtension extends SimpleExtension
      */
     public function excerptFilter($input, $length = 200, $includeTitle = false, $focus = null)
     {
-        $excerpt = new Excerpt($input->contenttype, $input->values, $this->app);
+        $excerpt = new Excerpt((is_object($input) && $input instanceof Content)?$input->values:$input);
 
         return $excerpt->getExcerpt($length, $includeTitle, $focus);
     }
