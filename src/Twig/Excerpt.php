@@ -22,7 +22,7 @@ class Excerpt extends BaseExcerpt
      * Constructor.
      *
      * @param Content|LegacyContent|array|string $body
-     * @param string|null                        $title
+     * @param string|null $title
      */
     public function __construct($body, $title = null)
     {
@@ -33,13 +33,13 @@ class Excerpt extends BaseExcerpt
     /**
      * Get the excerpt of a given piece of text.
      *
-     * @param int               $length
-     * @param bool              $includeTitle
+     * @param int $length
+     * @param bool $includeTitle
      * @param array|string|null $focus
      *
      * @return string|null
      */
-    public function getExcerpt($length = 200, $includeTitle = false, $focus = null, $stripFields = Array)
+    public function getExcerpt($length = 200, $includeTitle = false, $focus = null, $stripFields = array)
     {
         $title = null;
         if ($includeTitle && $this->title !== null) {
@@ -75,29 +75,33 @@ class Excerpt extends BaseExcerpt
             ];
 
             $excerpt = '';
-            array_walk($this->body, function ($value, $key) use (&$excerpt, $stripKeys) {
-                if (in_array($key, $stripKeys)) {
-                    return;
-                }
-                // We need non-empty strings that don't look like serialized JSON.
-                // Otherwise, Twig Markup is also OK.
-                if (is_string($value) && !empty($value) && !in_array($value[0], ['{', '[']) ||
-                    $value instanceof Markup && ($value instanceof RepeatingFieldCollection) === false) {
-                    $excerpt .= (string) $value . ' ';
-                }else if($value instanceof RepeatingFieldCollection){
-                    // also check repeater fields
-                    /** @var FieldValue $repeatField */
-                    foreach ($value->flatten() as $repeatField) {
-                        if (in_array($repeatField->getFieldType(), ['text', 'html', 'textarea', 'markdown'])) {
-                            $excerpt .= $repeatField->getValue();
+            array_walk(
+                $this->body,
+                function ($value, $key) use (&$excerpt, $stripKeys) {
+                    if (in_array($key, $stripKeys)) {
+                        return;
+                    }
+                    // We need non-empty strings that don't look like serialized JSON.
+                    // Otherwise, Twig Markup is also OK.
+                    if (is_string($value) && !empty($value) && !in_array($value[0], ['{', '[']) ||
+                        $value instanceof Markup && ($value instanceof RepeatingFieldCollection) === false) {
+                        $excerpt .= (string)$value . ' ';
+                    } else {
+                        if ($value instanceof RepeatingFieldCollection) {
+                            // also check repeater fields
+                            /** @var FieldValue $repeatField */
+                            foreach ($value->flatten() as $repeatField) {
+                                if (in_array($repeatField->getFieldType(), ['text', 'html', 'textarea', 'markdown'])) {
+                                    $excerpt .= $repeatField->getValue();
+                                }
+                            }
                         }
                     }
-
                 }
-            });
+            );
         } elseif (is_string($this->body) || (is_object($this->body) && method_exists($this->body, '__toString'))) {
             // otherwise we just use the string.
-            $excerpt = (string) $this->body;
+            $excerpt = (string)$this->body;
         } else {
             // Nope, got nothing.
             $excerpt = '';
@@ -126,8 +130,8 @@ class Excerpt extends BaseExcerpt
      * @see: http://www.boyter.org/2013/04/building-a-search-result-extract-generator-in-php/
      *
      * @param string|array $words
-     * @param string       $fulltext
-     * @param int          $relLength
+     * @param string $fulltext
+     * @param int $relLength
      *
      * @return string
      */
@@ -185,7 +189,7 @@ class Excerpt extends BaseExcerpt
      * Nothing exciting here. The array_unique is required, unless you decide
      * to make the words unique before passing in.
      *
-     * @param array  $words
+     * @param array $words
      * @param string $fulltext
      *
      * @return array
@@ -218,14 +222,14 @@ class Excerpt extends BaseExcerpt
      * first as will be equally distant.
      *
      * @param array $locations
-     * @param int   $prevCount
+     * @param int $prevCount
      *
      * @return int
      */
     private function determineSnipLocation(array $locations, $prevCount)
     {
         // If we only have 1 match we don't actually do the for loop so set to the first
-        $startPos = (int) reset($locations);
+        $startPos = (int)reset($locations);
         $locCount = count($locations);
         $smallestDiff = PHP_INT_MAX;
 

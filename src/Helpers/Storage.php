@@ -58,13 +58,13 @@ class Storage extends BaseLegacyStorage
                         'LOWER(%s.%s) LIKE LOWER(%s)',
                         $table,
                         $field,
-                        $this->helperApp['db']->quote('%'.$word.'%')
+                        $this->helperApp['db']->quote('%' . $word . '%')
                     );
                 }
             } elseif ($fieldconfig['type'] === 'repeater') {
                 foreach ($query['words'] as $word) {
                     // Build the LIKE, lowering the searched field to cover case-sensitive database systems
-                    $word = $this->helperApp['db']->quote('%'.$word.'%');
+                    $word = $this->helperApp['db']->quote('%' . $word . '%');
                     $fieldsWhere[] = sprintf(
                         "((LOWER(%s.value_text) LIKE LOWER(%s)) OR (LOWER(%s.value_string) LIKE LOWER(%s)))",
                         $fieldValueTable,
@@ -87,12 +87,12 @@ class Storage extends BaseLegacyStorage
                     $tagsWhere[] = sprintf(
                         '%s.slug LIKE %s',
                         $taxonomytable,
-                        $this->helperApp['db']->quote('%'.$word.'%')
+                        $this->helperApp['db']->quote('%' . $word . '%')
                     );
                     $tagsWhere[] = sprintf(
                         '%s.name LIKE %s',
                         $taxonomytable,
-                        $this->helperApp['db']->quote('%'.$word.'%')
+                        $this->helperApp['db']->quote('%' . $word . '%')
                     );
                 }
             }
@@ -110,7 +110,7 @@ class Storage extends BaseLegacyStorage
         if (!is_null($filter)) {
             foreach ($fields as $field => $fieldconfig) {
                 if (isset($filter[$field])) {
-                    $filterWhere[] = $this->parseWhereParameter($table.'.'.$field, $filter[$field]);
+                    $filterWhere[] = $this->parseWhereParameter($table . '.' . $field, $filter[$field]);
                 }
             }
         }
@@ -118,7 +118,7 @@ class Storage extends BaseLegacyStorage
         // Build actual where
         $where = [];
         $where[] = sprintf("%s.status = 'published'", $table);
-        $where[] = '(( '.implode(' OR ', $fieldsWhere).' ) '.$tagsQuery.' )';
+        $where[] = '(( ' . implode(' OR ', $fieldsWhere) . ' ) ' . $tagsQuery . ' )';
         $where = array_merge($where, $filterWhere);
 
         // Build SQL query
@@ -319,14 +319,14 @@ class Storage extends BaseLegacyStorage
                 $values[$index] = $this->parseWhereParameter($key, $value, $fieldtype);
             }
 
-            return "( ".implode(" OR ", $values)." )";
+            return "( " . implode(" OR ", $values) . " )";
         } elseif (strpos($value, " && ") !== false) {
             $values = explode(" && ", $value);
             foreach ($values as $index => $value) {
                 $values[$index] = $this->parseWhereParameter($key, $value, $fieldtype);
             }
 
-            return "( ".implode(" AND ", $values)." )";
+            return "( " . implode(" AND ", $values) . " )";
         }
 
         // Set the correct operator for the where clause

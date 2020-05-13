@@ -63,7 +63,6 @@ class SearchAbleRepeaterExtension extends SimpleExtension
                 return new Controller\SearchController($app);
             }
         );
-
     }
 
 
@@ -98,7 +97,7 @@ class SearchAbleRepeaterExtension extends SimpleExtension
      */
     public function excerptFilter($input, $length = 200, $includeTitle = false, $focus = null)
     {
-        $excerpt = new Excerpt((is_object($input) && $input instanceof Content)?$input->values:$input);
+        $excerpt = new Excerpt((is_object($input) && $input instanceof Content) ? $input->values : $input);
 
         return $excerpt->getExcerpt($length, $includeTitle, $focus);
     }
