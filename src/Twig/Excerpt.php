@@ -4,7 +4,9 @@ namespace Bolt\Extension\Gigabit\SearchableRepeater\Twig;
 
 use Bolt\Extension\Gigabit\SearchableRepeater\Helpers\ContentValuesTrait;
 use Bolt\Helpers\Excerpt as BaseExcerpt;
+use Bolt\Helpers\Html;
 use Bolt\Storage\Field\Collection\RepeatingFieldCollection;
+use Twig\Markup;
 
 /**
  * Class Excerpt
@@ -39,7 +41,7 @@ class Excerpt extends BaseExcerpt
      *
      * @return string|null
      */
-    public function getExcerpt($length = 200, $includeTitle = false, $focus = null, $stripFields = array)
+    public function getExcerpt($length = 200, $includeTitle = false, $focus = null, $stripFields = [])
     {
         $title = null;
         if ($includeTitle && $this->title !== null) {
@@ -55,24 +57,38 @@ class Excerpt extends BaseExcerpt
             $this->body = $this->body->getValues();
         }
 
+        if (!is_array($stripFields)) {
+            trigger_error(
+                sprintf(
+                    'Wrong type for "stripField" parameter. Expected array, got %s. Ignoring "stripField".',
+                    gettype($stripFields)
+                ),
+                E_USER_DEPRECATED
+            );
+            $stripFields = [];
+        }
+
         if (is_array($this->body)) {
             // Assume it's an array, strip some common fields that we don't need, implode the rest.
-            $stripKeys = [
-                'id',
-                'slug',
-                'datepublish',
-                'datedepublish',
-                'datecreated',
-                'datechanged',
-                'username',
-                'ownerid',
-                'title',
-                'contenttype',
-                'status',
-                'taxonomy',
-                'templatefields',
-                'sortorder',
-            ];
+            $stripKeys = array_merge(
+                [
+                    'id',
+                    'slug',
+                    'datepublish',
+                    'datedepublish',
+                    'datecreated',
+                    'datechanged',
+                    'username',
+                    'ownerid',
+                    'title',
+                    'contenttype',
+                    'status',
+                    'taxonomy',
+                    'templatefields',
+                    'sortorder',
+                ],
+                $stripFields
+            );
 
             $excerpt = '';
             array_walk(
@@ -83,13 +99,12 @@ class Excerpt extends BaseExcerpt
                     }
                     // We need non-empty strings that don't look like serialized JSON.
                     // Otherwise, Twig Markup is also OK.
-                    if (is_string($value) && !empty($value) && !in_array($value[0], ['{', '[']) ||
-                        $value instanceof Markup && ($value instanceof RepeatingFieldCollection) === false) {
+                    if ((is_string($value) && !empty($value) && !in_array($value[0], ['{', '['])) ||
+                        $value instanceof Markup) {
                         $excerpt .= (string)$value . ' ';
                     } else {
                         if ($value instanceof RepeatingFieldCollection) {
                             // also check repeater fields
-                            /** @var FieldValue $repeatField */
                             foreach ($value->flatten() as $repeatField) {
                                 if (in_array($repeatField->getFieldType(), ['text', 'html', 'textarea', 'markdown'])) {
                                     $excerpt .= $repeatField->getValue();
