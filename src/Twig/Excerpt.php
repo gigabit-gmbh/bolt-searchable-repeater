@@ -39,7 +39,7 @@ class Excerpt extends BaseExcerpt
      *
      * @return string|null
      */
-    public function getExcerpt($length = 200, $includeTitle = false, $focus = null)
+    public function getExcerpt($length = 200, $includeTitle = false, $focus = null, $stripFields = Array)
     {
         $title = null;
         if ($includeTitle && $this->title !== null) {
