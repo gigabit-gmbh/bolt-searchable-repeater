@@ -61,7 +61,7 @@ class Storage extends BaseLegacyStorage
                         $this->helperApp['db']->quote('%' . $word . '%')
                     );
                 }
-            } elseif ($fieldconfig['type'] === 'repeater') {
+            } elseif ($fieldconfig['type'] === 'repeater' || $fieldconfig['type'] === 'block') {
                 foreach ($query['words'] as $word) {
                     // Build the LIKE, lowering the searched field to cover case-sensitive database systems
                     $word = $this->helperApp['db']->quote('%' . $word . '%');
